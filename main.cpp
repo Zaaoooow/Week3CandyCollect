@@ -1,8 +1,17 @@
+/* Candy Slice:
+game where you slice candy and try to get the highest score
+the catch is if you slice the wrong things... youll be surprised.*/
 #include <raylib.h>
 
 int main(){
+    InitAudioDevice();
     InitWindow(1280, 720, "Candy Slice");
     SetTargetFPS(60);
+    
+    //music
+    Music thememusic1 = LoadMusicStream("assets/sounds/thememusic1.mp3");
+    //sfx
+    Sound click = LoadSound("assets/sounds/clicksound.wav");
     
     //textures
     //main menu
@@ -13,10 +22,17 @@ int main(){
     Texture2D settingsbuttonhover = LoadTexture("assets/textures/settingshover.png");
     Texture2D quitbutton = LoadTexture("assets/textures/quitbutton.png");
     Texture2D quitbuttonhover = LoadTexture("assets/textures/quitbuttonhover.png");
+    Texture2D settingspage = LoadTexture("assets/textures/settingspage.png");
+    Texture2D settingspageback = LoadTexture("assets/textures/settingspageback.png");
+    Texture2D settingspagebackhover = LoadTexture("assets/textures/settingspagebackhover.png");
+    Texture2D audiosettingon = LoadTexture("assets/textures/audiosettingon.png");
+    Texture2D audiosettingoff = LoadTexture("assets/textures/audiosettingoff.png");
     //gamemode screen
     Texture2D background1 = LoadTexture("assets/textures/background1.png");
     Texture2D classicmode = LoadTexture("assets/textures/classicmode.png");
     Texture2D classicmodehover = LoadTexture("assets/textures/classicmodehover.png");
+    Texture2D hardmode = LoadTexture("assets/textures/hardmode.png");
+    Texture2D hardmodehover = LoadTexture("assets/textures/hardmodehover.png");
 
     //texture filters
     //main menu
@@ -27,17 +43,31 @@ int main(){
     SetTextureFilter(settingsbuttonhover, TEXTURE_FILTER_POINT);
     SetTextureFilter(quitbutton, TEXTURE_FILTER_POINT);
     SetTextureFilter(quitbuttonhover, TEXTURE_FILTER_POINT);
+    SetTextureFilter(settingspage, TEXTURE_FILTER_POINT);
+    SetTextureFilter(settingspageback, TEXTURE_FILTER_POINT);
+    SetTextureFilter(settingspagebackhover, TEXTURE_FILTER_POINT);
+    SetTextureFilter(audiosettingon, TEXTURE_FILTER_POINT);
+    SetTextureFilter(audiosettingoff, TEXTURE_FILTER_POINT);
     //gamemode screen
     SetTextureFilter(background1, TEXTURE_FILTER_POINT);
     SetTextureFilter(classicmode, TEXTURE_FILTER_POINT);
     SetTextureFilter(classicmodehover, TEXTURE_FILTER_POINT);
-
+    SetTextureFilter(hardmode, TEXTURE_FILTER_POINT);
+    SetTextureFilter(hardmodehover, TEXTURE_FILTER_POINT);
 
     //variables
-    //screen
     int screen = 0;
+    // bool
+    bool settingpagebool = false;
+    bool audio = true;
 
+    //sounds
+    SetMusicVolume(thememusic1, 0.6f);
+    SetSoundVolume(click, 0.6f);
+
+    PlayMusicStream(thememusic1);
     while(!WindowShouldClose()){
+        UpdateMusicStream(thememusic1);
         //mouse position
         Vector2 cursor = GetMousePosition();
 
@@ -47,17 +77,28 @@ int main(){
 
         DrawTextureEx(background0, {0, 0}, 0, 8.0f, WHITE);
 
+        //audiosettings
+        if(audio){
+            SetMasterVolume(1.0f);
+        }
+        else if(!audio){
+            SetMasterVolume(0.0f);
+        }
+
 
         //main menu
         if(screen == 0){
             bool playbuttonbool = CheckCollisionPointRec(cursor, {376, 192, 528, 96});
             bool settingbuttonbool = CheckCollisionPointRec(cursor, {376, 320, 528, 96});
             bool quitbuttonbool = CheckCollisionPointRec(cursor, {376, 448, 528, 96});
+            bool settingbool = CheckCollisionPointRec(cursor, {912, 160, 80, 72});
+            bool audiobool = CheckCollisionPointRec(cursor, {344, 208, 96, 40});
 
             //playbutton
-            if(playbuttonbool){
+            if(playbuttonbool && !settingpagebool){
                 DrawTextureEx(playbutton, {0, 0}, 0, 8.0f, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                    PlaySound(click);
                     screen = 1;
                 }
             }
@@ -66,9 +107,11 @@ int main(){
             }
 
             //settingbutton
-            if(settingbuttonbool){
+            if(settingbuttonbool && !settingpagebool){
                 DrawTextureEx(settingsbuttonhover, {0,0}, 0, 8.0f, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                    PlaySound(click);
+                    settingpagebool = true;
                 }
             }
             else{
@@ -76,20 +119,50 @@ int main(){
             }
 
             //quitbutton
-            if(quitbuttonbool){
+            if(quitbuttonbool && !settingpagebool){
                 DrawTextureEx(quitbuttonhover, {0,0}, 0, 8.0f, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                    PlaySound(click);
                     break;
                 }
             }
             else{
                 DrawTextureEx(quitbutton, {0,0}, 0, 8.0f, WHITE);
             }
+
+            //settingspage
+            if(settingpagebool){
+                DrawTextureEx(settingspage, {0,0}, 0, 8.0f, WHITE);
+                if(settingbool){
+                    DrawTextureEx(settingspagebackhover, {0, 0}, 0, 8.0f, WHITE);
+                    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        settingpagebool = false;
+                    }
+                }
+                else{
+                    DrawTextureEx(settingspageback, {0, 0}, 0, 8.0f, WHITE);
+                }
+                if(audio){
+                    DrawText("Audio", 366, 220, 20, WHITE);
+                    DrawTextureEx(audiosettingon, {0, 0}, 0, 8.0f, WHITE);
+                    if(audiobool && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        audio = false;
+                }
+                }
+                else if(!audio){
+                    DrawText("Audio", 366, 220, 20, BLACK);
+                    DrawTextureEx(audiosettingoff, {0, 0}, 0, 8.0f, WHITE);
+                    if(audiobool && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                    audio = true;
+                    }
+                }
+            }
         }
         
         //gamemode
         if(screen == 1){
             bool classicmodebool = CheckCollisionPointRec(cursor, {376, 192, 528, 96});
+            bool hardmodebool = CheckCollisionPointRec(cursor, {376, 320, 528, 96});
 
             ClearBackground(WHITE);
             DrawTextureEx(background1, {0,0}, 0, 8.0f, WHITE);
@@ -102,13 +175,19 @@ int main(){
                 DrawTextureEx(classicmode, {0,0}, 0, 8.0f, WHITE);
             }
 
-
-
+            //hardmode button
+            if(hardmodebool){
+                DrawTextureEx(hardmodehover, {0, 0}, 0, 8.0f, WHITE);
+            }
+            else{
+                DrawTextureEx(hardmode, {0, 0}, 0, 8.0f, WHITE);
+            }
         }
         //end
         EndDrawing();
     }
-
+    UnloadMusicStream(thememusic1);
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }
