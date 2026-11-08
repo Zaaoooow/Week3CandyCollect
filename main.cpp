@@ -118,6 +118,19 @@ int main(){
     float scaretime = 0.0f;
     bool losemusicon = false;
     bool winmusicon = false;
+    //hard mode
+    int hardcandycount = 5;
+    Vector2 hardcandypositions[hardcandycount] = {
+        {200, 650}, {400, 650}, {600, 650}, {800, 650}, {1000, 650}
+    };
+    int hardcandytype[hardcandycount] = {0, 1, 2, 3, 0};
+    float hardcandyspeed[hardcandycount] = {
+        -1000, -950, -900, -850, -800
+    };
+    int hardscore = 0;
+    int hardlives = 1;
+    bool hardlosemusicon = false;
+    bool hardwinmusicon = false;
 
 
     //sounds
@@ -261,6 +274,10 @@ int main(){
                     PlaySound(click);
                     screen = 3;
                     StopMusicStream(thememusic1);
+                    StopMusicStream(losemusic);
+                    StopMusicStream(winmusic);
+                    PlayMusicStream(classicmusic);
+                    
 
                     //
                 }
@@ -358,6 +375,9 @@ int main(){
                     if(classicscore >= 30){
                         classicscore = 30;
                     }
+                    if(classicscore <= 0){
+                        classicscore = 0;
+                    }
                 }
             }
 
@@ -444,8 +464,166 @@ int main(){
 
         }
         else if(screen == 3){
+            bool losep = CheckCollisionPointRec(cursor, {160, 432, 120, 40});
+            bool losea = CheckCollisionPointRec(cursor, {192, 480, 168, 72});
+            bool winp = CheckCollisionPointRec(cursor, {96, 416, 232, 96});
+            bool wina = CheckCollisionPointRec(cursor, {136, 544, 336, 88});
+
             ClearBackground(WHITE);
             DrawTextureEx(hardmodebg, {0,0}, 0, 8.0f, WHITE);
+
+            DrawText(TextFormat("Lives: %i", hardlives), 595, 20, 30, PURPLE);
+            DrawText(TextFormat("Score: %i", hardscore), 20, 20, 30, WHITE);
+
+            if(hardlives > 0 && hardscore < 45){
+                for(int i = 0; i < hardcandycount; i++){
+                    Texture2D currentcandy;
+                    //candy textures
+                    if(hardcandytype[i] == 0){
+                        currentcandy = candy1;
+                    }
+                    else if(hardcandytype[i] == 1){
+                        currentcandy = candy2;
+                    }
+                    else if(hardcandytype[i] == 2){
+                        currentcandy = badcandy;
+                    }
+                    else{
+                        currentcandy = badcandy2;
+                    }
+                    //move candy
+                    hardcandyspeed[i] += gravity * GetFrameTime();
+                    hardcandypositions[i].y += hardcandyspeed[i] * GetFrameTime();
+
+                    //reset candy
+                    if(hardcandypositions[i].y > 800){
+                        if(hardcandytype[i] == 0 || hardcandytype[i] == 1){
+                            hardscore--;
+                        }
+                        hardcandypositions[i].y = 720;
+                        hardcandypositions[i].x = GetRandomValue(50, 1230);
+                        hardcandyspeed[i] = GetRandomValue(-1000, -800);
+                        hardcandytype[i] = GetRandomValue(0, 3);
+                    }
+                    
+                    //checkcollision
+                    Rectangle candyhitbox = {
+                        hardcandypositions[i].x - (currentcandy.width * 8.0f) /2,
+                        hardcandypositions[i].y - (currentcandy.height * 8.0f) / 2,
+                        currentcandy.width * 8.0f,
+                        currentcandy.height * 8.0f
+                    };
+
+                    if(CheckCollisionPointRec(cursor, candyhitbox)){
+                        if(hardcandytype[i] == 0 || hardcandytype[i] == 1){
+                            hardscore++;
+                            PlaySound(correct);
+                        }
+                        else{
+                            hardlives--;
+                            PlaySound(wrong);
+                            PlaySound(scare);
+                            jumpscareshown = true;
+                            scaretime = 0.1f;
+                        }
+                        hardcandypositions[i].y = 720;
+                        hardcandypositions[i].x = GetRandomValue(50, 1230);
+                        hardcandyspeed[i] = GetRandomValue(-1000, -800);
+                        hardcandytype[i] = GetRandomValue(0, 3);
+
+                        continue;
+                    }
+                    
+                    //draw candy
+                    DrawTextureEx(currentcandy, {hardcandypositions[i].x - (currentcandy.width * 8.0f) / 2, hardcandypositions[i].y - (currentcandy.height * 8.0f) / 2}, 0, 8.0f, WHITE);
+                }
+            }
+            if(hardlives <= 0){
+                hardlives = 0;
+                DrawTextureEx(gameloss, {0,0}, 0, 8.0f, WHITE);
+                if(!hardlosemusicon){
+                    StopMusicStream(classicmusic);
+                    PlayMusicStream(losemusic);
+                    StopMusicStream(thememusic1);
+                    hardlosemusicon = true;
+                }
+                if(losep || losea){
+                    DrawTextureEx(playagainhover, {0,0}, 0, 8.0f, WHITE);
+                    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        StopMusicStream(losemusic);
+                        PlayMusicStream(thememusic1);
+                        hardscore = 0;
+                        hardlives = 1;
+                        scaretime = 0.0f;
+                        hardcandypositions[0] = {200, 650};
+                        hardcandypositions[1] = {400, 650};
+                        hardcandypositions[2] = {600, 650};
+                        hardcandypositions[3] = {800, 650};
+                        hardcandypositions[4] = {1000, 650};
+                        hardcandytype[0] = 0;
+                        hardcandytype[1] = 1;
+                        hardcandytype[2] = 2;
+                        hardcandytype[3] = 3;
+                        hardcandytype[4] = 1;
+                        hardcandyspeed[0] = -800;
+                        hardcandyspeed[1] = -950;
+                        hardcandyspeed[2] = -900;
+                        hardcandyspeed[3] = -850;
+                        hardcandyspeed[4] = -800;
+                        screen = 1;
+                        hardlosemusicon = false;
+                        hardwinmusicon = false;
+                    }
+                }
+                else{
+                    DrawTextureEx(playagain, {0,0}, 0, 8.0f, WHITE);
+                }
+            }
+            if(hardscore >= 45){
+                hardscore = 45;
+                if(!hardwinmusicon){
+                    StopMusicStream(classicmusic);
+                    PlayMusicStream(winmusic);
+                    hardwinmusicon = true;
+                }
+                DrawTextureEx(gamewin, {0,0}, 0, 8.0f, WHITE);
+                if(winp || wina){
+                    DrawTextureEx(winpahover, {0,0}, 0, 8.0f, WHITE);
+                    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        StopMusicStream(winmusic);
+                        PlayMusicStream(thememusic1);
+                        hardlosemusicon = false;
+                        hardwinmusicon = false;
+                        hardlives = 1;
+                        hardscore = 0;
+                        scaretime = 0.0f;
+                        candyPositions[0] = {200, 650};
+                        candyPositions[1] = {400, 650};
+                        candyPositions[2] = {600, 650};
+                        candyPositions[3] = {800, 650};
+                        candyPositions[4] = {1000, 650};
+                        hardcandytype[0] = 0;
+                        hardcandytype[1] = 1;
+                        hardcandytype[2] = 2;
+                        hardcandytype[3] = 3;
+                        hardcandytype[4] = 1;
+                        hardcandyspeed[0] = -800;
+                        hardcandyspeed[1] = -950;
+                        hardcandyspeed[2] = -900;
+                        hardcandyspeed[3] = -850;
+                        hardcandyspeed[4] = -800;
+                        screen = 1;
+                    }
+                }
+                else{
+                    DrawTextureEx(winpa, {0,0}, 0, 8.0f, WHITE);
+                }
+
+            }
+            if(hardscore <= 0){
+                hardscore = 0;
+            }
+
         }
         DrawCircleV(cursor, 3.0f, WHITE);
         DrawLineEx(previouscursor, cursor, 3.0f, WHITE);
