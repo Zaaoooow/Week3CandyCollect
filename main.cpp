@@ -34,6 +34,11 @@ int main(){
     Texture2D settingspagebackhover = LoadTexture("assets/textures/settingspagebackhover.png");
     Texture2D audiosettingon = LoadTexture("assets/textures/audiosettingon.png");
     Texture2D audiosettingoff = LoadTexture("assets/textures/audiosettingoff.png");
+    Texture2D guidebutton = LoadTexture("assets/textures/guide.png");
+    Texture2D guidebuttonhover = LoadTexture("assets/textures/guidehover.png");
+    Texture2D guidepage = LoadTexture("assets/textures/guidepage.png");
+    Texture2D guideexit = LoadTexture("assets/textures/guideexit.png");
+    Texture2D guideexithover = LoadTexture("assets/textures/guideexithover.png");
     //gamemode screen
     Texture2D background1 = LoadTexture("assets/textures/background1.png");
     Texture2D classicmode = LoadTexture("assets/textures/classicmode.png");
@@ -42,6 +47,8 @@ int main(){
     Texture2D hardmodehover = LoadTexture("assets/textures/hardmodehover.png");
     Texture2D backbutton = LoadTexture("assets/textures/back.png");
     Texture2D backbuttonhover = LoadTexture("assets/textures/backhover.png");
+    Texture2D statsbutton = LoadTexture("assets/textures/statsbutton.png");
+    Texture2D statsbuttonhover = LoadTexture("assets/textures/statsbuttonhover.png");
     //classic screen
     Texture2D classicbg = LoadTexture("assets/textures/classicbackground.png");
     Texture2D candy1 = LoadTexture("assets/textures/candy1.png");
@@ -72,6 +79,11 @@ int main(){
     SetTextureFilter(settingspagebackhover, TEXTURE_FILTER_POINT);
     SetTextureFilter(audiosettingon, TEXTURE_FILTER_POINT);
     SetTextureFilter(audiosettingoff, TEXTURE_FILTER_POINT);
+    SetTextureFilter(guidebutton, TEXTURE_FILTER_POINT);
+    SetTextureFilter(guideexit, TEXTURE_FILTER_POINT);
+    SetTextureFilter(guideexithover, TEXTURE_FILTER_POINT);
+    SetTextureFilter(guidebuttonhover, TEXTURE_FILTER_POINT);
+    SetTextureFilter(guidepage, TEXTURE_FILTER_POINT);
     //gamemode screen
     SetTextureFilter(background1, TEXTURE_FILTER_POINT);
     SetTextureFilter(classicmode, TEXTURE_FILTER_POINT);
@@ -80,6 +92,8 @@ int main(){
     SetTextureFilter(hardmodehover, TEXTURE_FILTER_POINT);
     SetTextureFilter(backbutton, TEXTURE_FILTER_POINT);
     SetTextureFilter(backbuttonhover, TEXTURE_FILTER_POINT);
+    SetTextureFilter(statsbutton, TEXTURE_FILTER_POINT);
+    SetTextureFilter(statsbuttonhover, TEXTURE_FILTER_POINT);
     //classic screen
     SetTextureFilter(classicbg, TEXTURE_FILTER_POINT);
     SetTextureFilter(candy1, TEXTURE_FILTER_POINT);
@@ -101,6 +115,8 @@ int main(){
     // bool
     bool settingpagebool = false;
     bool audio = true;
+    bool guidepagebool = false;
+    bool statspagebool = false;
 
     //classic mode
     int candyCount = 3;
@@ -108,7 +124,6 @@ int main(){
         {300, 650}, {640, 650}, {500, 650} 
     };
     int candytype[candyCount] = {0, 1, 0};
-    float candyRadius = 30;
     bool candyShown = true;
     float candySpeed[candyCount] = {-1000, -950, -800};
     float gravity = 900.0f;
@@ -176,9 +191,11 @@ int main(){
             bool quitbuttonbool = CheckCollisionPointRec(cursor, {376, 448, 528, 96});
             bool settingbool = CheckCollisionPointRec(cursor, {912, 160, 80, 72});
             bool audiobool = CheckCollisionPointRec(cursor, {344, 208, 96, 40});
+            bool guidebool = CheckCollisionPointRec(cursor, {376, 576, 528, 96});
+            bool guideexitbool = CheckCollisionPointRec(cursor, {896, 152, 40, 40});
 
             //playbutton
-            if(playbuttonbool && !settingpagebool){
+            if(playbuttonbool && !settingpagebool && !guidepagebool){
                 DrawTextureEx(playbutton, {0, 0}, 0, 8.0f, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                     PlaySound(click);
@@ -190,7 +207,7 @@ int main(){
             }
 
             //settingbutton
-            if(settingbuttonbool && !settingpagebool){
+            if(settingbuttonbool && !settingpagebool && !guidepagebool){
                 DrawTextureEx(settingsbuttonhover, {0,0}, 0, 8.0f, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                     PlaySound(click);
@@ -202,7 +219,7 @@ int main(){
             }
 
             //quitbutton
-            if(quitbuttonbool && !settingpagebool){
+            if(quitbuttonbool && !settingpagebool && !guidepagebool){
                 DrawTextureEx(quitbuttonhover, {0,0}, 0, 8.0f, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                     PlaySound(click);
@@ -211,6 +228,52 @@ int main(){
             }
             else{
                 DrawTextureEx(quitbutton, {0,0}, 0, 8.0f, WHITE);
+            }
+
+            //guidebutton
+            if(guidebool && !settingpagebool && !guidepagebool){
+                DrawTextureEx(guidebuttonhover, {0,0}, 0, 8.0f, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                    PlaySound(click);
+                    guidepagebool = true;
+                }
+            }
+            else{
+                DrawTextureEx(guidebutton, {0,0}, 0, 8.0f, WHITE);
+            }
+            
+            //guide page
+            if(guidepagebool){
+                DrawTextureEx(guidepage, {0,0}, 0, 8.0f, WHITE);
+                DrawText("Classic Mode: ", 350, 150, 20, GREEN);
+                DrawText("You have to collect as much good candy as possible with 3 lives.", 350, 175, 15, WHITE);
+                DrawText("Lighter candies are good, and darker candies are bad..", 350, 190, 15, WHITE);
+                DrawText("If you collect the wrong candy, you'll get surprise..", 350, 205, 15, WHITE);
+                DrawText("You'll be thrown 3 random candies constantly.", 350, 220, 15, WHITE);
+                DrawText("Your goal is to collect 30 good candies!", 350, 235, 15, WHITE);
+                DrawText("Hard Mode: ", 350, 265, 20, RED);
+                DrawText("You have to collect as much good candy as possible", 350, 290, 15, WHITE);
+                DrawText("Lighter candies are good, and darker candies are bad..", 350, 305, 15, WHITE);
+                DrawText("You only have 1 life...", 350, 320, 15, WHITE);
+                DrawText("You'll be thrown 5 candies constantly.", 350, 335, 15, WHITE);
+                DrawText("Your goal is to collect 45 good candies!", 350, 350, 15, WHITE);
+
+                DrawText("pssst--", 350, 380, 20, SKYBLUE);
+                DrawText("Wrong candies make you lose 1 life, and 1 point", 350, 405, 15, WHITE);
+                DrawText("Letting a good candy fall down makes you lose 1 point", 350, 420, 15, WHITE);
+
+
+
+                if(guideexitbool){
+                    DrawTextureEx(guideexithover, {0,0}, 0, 8.0f, WHITE);
+                    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        PlaySound(back);
+                        guidepagebool = false;
+                    }
+                }
+                else{
+                    DrawTextureEx(guideexit, {0,0}, 0, 8.0f, WHITE);
+                }
             }
 
             //settingspage
@@ -248,12 +311,13 @@ int main(){
             bool classicmodebool = CheckCollisionPointRec(cursor, {376, 192, 528, 96});
             bool hardmodebool = CheckCollisionPointRec(cursor, {376, 320, 528, 96});
             bool backbool = CheckCollisionPointRec(cursor, {376, 448, 528, 96});
+            bool statsbool = CheckCollisionPointRec(cursor, {376, 576, 528, 96});
 
             ClearBackground(WHITE);
             DrawTextureEx(background1, {0,0}, 0, 8.0f, WHITE);
 
             //classicmode button
-            if(classicmodebool){
+            if(classicmodebool && !statspagebool){
                 DrawTextureEx(classicmodehover, {0,0}, 0, 8.0f, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                     screen = 2;
@@ -268,7 +332,7 @@ int main(){
             }
 
             //hardmode button
-            if(hardmodebool){
+            if(hardmodebool && !statspagebool){
                 DrawTextureEx(hardmodehover, {0, 0}, 0, 8.0f, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                     PlaySound(click);
@@ -287,7 +351,7 @@ int main(){
             }
 
             //back button
-            if(backbool){
+            if(backbool && !statspagebool){
                 DrawTextureEx(backbuttonhover, {0, 0}, 0, 8.0f , WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                     PlaySound(back);
@@ -296,6 +360,23 @@ int main(){
             }
             else{
                 DrawTextureEx(backbutton, {0, 0}, 0, 8.0f, WHITE);
+            }
+            
+            //stats button
+            if(statsbool && !statspagebool){
+                DrawTextureEx(statsbuttonhover, {0,0}, 0, 8.0f, WHITE);
+                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                    PlaySound(click);
+                    statspagebool = true;
+                }
+            }
+            else{
+                DrawTextureEx(statsbutton, {0,0}, 0, 8.0f, WHITE);
+            }
+            
+            //stats page
+            if(statspagebool){
+                
             }
         }
         else if(screen == 2){
@@ -550,6 +631,7 @@ int main(){
                 if(losep || losea){
                     DrawTextureEx(playagainhover, {0,0}, 0, 8.0f, WHITE);
                     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        PlaySound(click);
                         StopMusicStream(losemusic);
                         PlayMusicStream(thememusic1);
                         hardscore = 0;
@@ -590,6 +672,7 @@ int main(){
                 if(winp || wina){
                     DrawTextureEx(winpahover, {0,0}, 0, 8.0f, WHITE);
                     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        PlaySound(click);
                         StopMusicStream(winmusic);
                         PlayMusicStream(thememusic1);
                         hardlosemusicon = false;
