@@ -13,6 +13,9 @@ int main(){
     //sfx
     Sound click = LoadSound("assets/sounds/clicksound.wav");
     Sound back = LoadSound("assets/sounds/back.wav");
+    Sound correct = LoadSound("assets/sounds/correctcandy.mp3");
+    Sound wrong = LoadSound("assets/sounds/wrongcandy.mp3");
+    Sound scare = LoadSound("assets/sounds/jumpscares.mp3");
     
     //textures
     //main menu
@@ -39,6 +42,13 @@ int main(){
     //classic screen
     Texture2D classicbg = LoadTexture("assets/textures/classicbackground.png");
     Texture2D candy1 = LoadTexture("assets/textures/candy1.png");
+    Texture2D candy2 = LoadTexture("assets/textures/candy2.png");
+    Texture2D badcandy = LoadTexture("assets/textures/badcandy.png");
+    Texture2D badcandy2 = LoadTexture("assets/textures/badcandy2.png");
+    Texture2D jumpscare = LoadTexture("assets/textures/jumpscare.png");
+    Texture2D gameloss = LoadTexture("assets/textures/gameloss.png");
+    Texture2D playagain = LoadTexture("assets/textures/playagain.png");
+    Texture2D playagainhover = LoadTexture("assets/textures/playagainhover.png");
 
     //texture filters
     //main menu
@@ -65,6 +75,13 @@ int main(){
     //classic screen
     SetTextureFilter(classicbg, TEXTURE_FILTER_POINT);
     SetTextureFilter(candy1, TEXTURE_FILTER_POINT);
+    SetTextureFilter(candy2, TEXTURE_FILTER_POINT);
+    SetTextureFilter(badcandy, TEXTURE_FILTER_POINT);
+    SetTextureFilter(badcandy2, TEXTURE_FILTER_POINT);
+    SetTextureFilter(jumpscare, TEXTURE_FILTER_POINT);
+    SetTextureFilter(gameloss, TEXTURE_FILTER_POINT);
+    SetTextureFilter(playagain, TEXTURE_FILTER_POINT);
+    SetTextureFilter(playagainhover, TEXTURE_FILTER_POINT);
 
     //variables
     int screen = 0;
@@ -77,20 +94,29 @@ int main(){
     Vector2 candyPositions[candyCount] = {
         {300, 650}, {640, 650}, {500, 650} 
     };
+    int candytype[candyCount] = {0, 1, 0};
     float candyRadius = 30;
     bool candyShown = true;
-    float candySpeed[candyCount] = {300, 350, 280};
+    float candySpeed[candyCount] = {-1000, -950, -800};
+    float gravity = 900.0f;
     int classicscore = 0;
+    int lives = 3;
+    bool jumpscareshown = false;
+    float scaretime = 0.0f;
 
 
     //sounds
     SetMusicVolume(thememusic1, 0.6f);
     SetSoundVolume(click, 0.6f);
     SetSoundVolume(back, 0.6f);
+    SetSoundVolume(scare, 1.2f);
 
+    //slice
+    Vector2 previouscursor = GetMousePosition();
 
     PlayMusicStream(thememusic1);
     while(!WindowShouldClose()){
+        HideCursor();
         UpdateMusicStream(thememusic1);
         //mouse position
         Vector2 cursor = GetMousePosition();
@@ -98,7 +124,6 @@ int main(){
         //begin
         BeginDrawing();
         ClearBackground(WHITE);
-
         DrawTextureEx(background0, {0, 0}, 0, 8.0f, WHITE);
 
         //audiosettings
@@ -231,40 +256,110 @@ int main(){
             }
         }
         else if(screen == 2){
+            bool playbool = CheckCollisionPointRec(cursor, {160, 432, 120, 40});
+            bool againbool = CheckCollisionPointRec(cursor, {192, 480, 168, 72});
+            StopMusicStream(thememusic1);
             ClearBackground(WHITE);
             DrawTextureEx(classicbg, {0,0}, 0, 8.0f, WHITE);
-            DrawText(TextFormat("Score: %i", classicscore), 20, 25, 30, WHITE);
-            for(int i = 0; i < candyCount; i++){
-                // move candy
-                candyPositions[i].y -= candySpeed[i] * GetFrameTime();
+            DrawText(TextFormat("Lives: %i", lives), 595, 20, 30, RED);
+            DrawText(TextFormat("Score: %i", classicscore), 20, 20, 30, WHITE);
 
-                //reset candy
-                if(candyPositions[i].y < -candyRadius){
-                    candyPositions[i].y = 650;
-                    candyPositions[i].x = GetRandomValue(50, 1230);
-                }
+            if(lives > 0){
+                for(int i = 0; i < candyCount; i++){
+                    Texture2D currentcandy;
+                    if(candytype[i] == 0){
+                        currentcandy = candy1;
+                    }
+                    else if(candytype[i] == 1){
+                        currentcandy = candy2;
+                    }
+                    else if(candytype[i] == 2){
+                        currentcandy = badcandy;
+                    }
+                    else{
+                        currentcandy = badcandy2;
+                    }
+                    // move candy
+                    candySpeed[i] += gravity * GetFrameTime();
+                    candyPositions[i].y += candySpeed[i] * GetFrameTime();
 
-                // mouse detection for candies
-                Rectangle candyhitbox = {
-                    candyPositions[i].x - (candy1.width * 8.0f) / 2,
-                    candyPositions[i].y - (candy1.height * 8.0f) / 2,
-                    candy1.width * 8.0f,
-                    candy1.height * 8.0f
-                };
-
-                if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
-                    if(CheckCollisionPointRec(cursor, candyhitbox)){
-                        classicscore++;
-
-                        candyPositions[i].y = 650;
+                    //reset candy
+                    if(candyPositions[i].y > 800){
+                        if(candytype[i] == 0 || candytype[i] == 1){
+                            PlaySound(wrong);
+                            classicscore--;
+                        }
+                        candyPositions[i].y = 720;
                         candyPositions[i].x = GetRandomValue(50, 1230);
+                        candySpeed[i] = GetRandomValue(-1000, -800);
+                        candytype[i] = GetRandomValue(0, 3);
+                    }
+
+                    // mouse detection for candies
+                    Rectangle candyhitbox = {
+                        candyPositions[i].x - (currentcandy.width * 8.0f) / 2,
+                        candyPositions[i].y - (currentcandy.height * 8.0f) / 2,
+                        currentcandy.width * 8.0f,
+                        currentcandy.height * 8.0f
+                    };
+
+                    if(CheckCollisionPointRec(cursor, candyhitbox)){
+                        if(candytype[i] == 0 || candytype[i] == 1){
+                            classicscore++;
+                            PlaySound(correct);
+                        }
+                        else{
+                            lives--;
+                            classicscore--;
+                            PlaySound(wrong);
+                            jumpscareshown = true;
+                            scaretime = 0.1f;
+                            PlaySound(scare);
+
+                        }
+
+                        candyPositions[i].y = 720;
+                        candyPositions[i].x = GetRandomValue(50, 1230);
+                        candySpeed[i] = GetRandomValue(-1000, -800);
+                        candytype[i] = GetRandomValue(0, 3);
+                    }
+                    DrawTextureEx(currentcandy, {candyPositions[i].x - (currentcandy.width * 8.0f) / 2, candyPositions[i].y - (currentcandy.height * 8.0f) / 2}, 0, 8.0f, WHITE);
+
+                    if(lives <= 0){
+                        lives = 0;
                     }
                 }
-                DrawTextureEx(candy1, {candyPositions[i].x - (candy1.width * 8.0f) / 2, candyPositions[i].y - (candy1.height * 8.0f) / 2}, 0, 8.0f, WHITE);
+            }
 
+            if(lives == 0){
+                DrawTextureEx(gameloss, {0,0}, 0, 8.0f, WHITE);
+                if(playbool || againbool){
+                    DrawTextureEx(playagainhover, {0,0}, 0, 8.0f, WHITE);
+                    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        classicscore = 0;
+                        lives = 3;
+                        screen = 1;
+                    }
+                }
+                else{
+                    DrawTextureEx(playagain, {0,0}, 0, 8.0f, WHITE);
+                }
+                
+            }
+
+            if(jumpscareshown && lives > 0){
+                DrawTextureEx(jumpscare, {0,0}, 0, 8.0f, WHITE);
+                scaretime -= GetFrameTime();
+
+                if(scaretime <= 0){
+                    jumpscareshown = false;
+                }
             }
 
         }
+        DrawCircleV(cursor, 3.0f, WHITE);
+        DrawLineEx(previouscursor, cursor, 3.0f, WHITE);
+        previouscursor = cursor;
         //end
         EndDrawing();
     }
