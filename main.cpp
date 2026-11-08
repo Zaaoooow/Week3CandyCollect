@@ -10,6 +10,9 @@ int main(){
     
     //music
     Music thememusic1 = LoadMusicStream("assets/sounds/thememusic1.mp3");
+    Music classicmusic = LoadMusicStream("assets/sounds/classicmusic.mp3");
+    Music winmusic = LoadMusicStream("assets/sounds/winmusic.mp3");
+    Music losemusic = LoadMusicStream("assets/sounds/losemusic.mp3");
     //sfx
     Sound click = LoadSound("assets/sounds/clicksound.wav");
     Sound back = LoadSound("assets/sounds/back.wav");
@@ -49,6 +52,11 @@ int main(){
     Texture2D gameloss = LoadTexture("assets/textures/gameloss.png");
     Texture2D playagain = LoadTexture("assets/textures/playagain.png");
     Texture2D playagainhover = LoadTexture("assets/textures/playagainhover.png");
+    Texture2D gamewin = LoadTexture("assets/textures/gamewin.png");
+    Texture2D winpa = LoadTexture("assets/textures/winplayagain.png");
+    Texture2D winpahover = LoadTexture("assets/textures/winplayagainhover.png");
+    //hardmode screen
+    Texture2D hardmodebg = LoadTexture("assets/textures/hardbackground.png");
 
     //texture filters
     //main menu
@@ -82,6 +90,11 @@ int main(){
     SetTextureFilter(gameloss, TEXTURE_FILTER_POINT);
     SetTextureFilter(playagain, TEXTURE_FILTER_POINT);
     SetTextureFilter(playagainhover, TEXTURE_FILTER_POINT);
+    SetTextureFilter(gamewin, TEXTURE_FILTER_POINT);
+    SetTextureFilter(winpa, TEXTURE_FILTER_POINT);
+    SetTextureFilter(winpahover, TEXTURE_FILTER_POINT);
+    //hardmode screen
+    SetTextureFilter(hardmodebg, TEXTURE_FILTER_POINT);
 
     //variables
     int screen = 0;
@@ -103,6 +116,8 @@ int main(){
     int lives = 3;
     bool jumpscareshown = false;
     float scaretime = 0.0f;
+    bool losemusicon = false;
+    bool winmusicon = false;
 
 
     //sounds
@@ -110,6 +125,9 @@ int main(){
     SetSoundVolume(click, 0.6f);
     SetSoundVolume(back, 0.6f);
     SetSoundVolume(scare, 1.2f);
+    SetMusicVolume(classicmusic, 0.6f);
+    SetMusicVolume(losemusic, 0.6f);
+    SetMusicVolume(winmusic, 0.6f);
 
     //slice
     Vector2 previouscursor = GetMousePosition();
@@ -117,7 +135,10 @@ int main(){
     PlayMusicStream(thememusic1);
     while(!WindowShouldClose()){
         HideCursor();
+        UpdateMusicStream(losemusic);
+        UpdateMusicStream(winmusic);
         UpdateMusicStream(thememusic1);
+        UpdateMusicStream(classicmusic);
         //mouse position
         Vector2 cursor = GetMousePosition();
 
@@ -224,6 +245,8 @@ int main(){
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                     screen = 2;
                     PlaySound(click);
+                    StopMusicStream(thememusic1);
+                    PlayMusicStream(classicmusic);
                     //
                 }
             }
@@ -236,6 +259,9 @@ int main(){
                 DrawTextureEx(hardmodehover, {0, 0}, 0, 8.0f, WHITE);
                 if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
                     PlaySound(click);
+                    screen = 3;
+                    StopMusicStream(thememusic1);
+
                     //
                 }
             }
@@ -258,13 +284,14 @@ int main(){
         else if(screen == 2){
             bool playbool = CheckCollisionPointRec(cursor, {160, 432, 120, 40});
             bool againbool = CheckCollisionPointRec(cursor, {192, 480, 168, 72});
-            StopMusicStream(thememusic1);
+            bool winp = CheckCollisionPointRec(cursor, {96, 416, 232, 96});
+            bool wina = CheckCollisionPointRec(cursor, {136, 544, 336, 88});
             ClearBackground(WHITE);
             DrawTextureEx(classicbg, {0,0}, 0, 8.0f, WHITE);
             DrawText(TextFormat("Lives: %i", lives), 595, 20, 30, RED);
             DrawText(TextFormat("Score: %i", classicscore), 20, 20, 30, WHITE);
 
-            if(lives > 0){
+            if(lives > 0 && classicscore < 30){
                 for(int i = 0; i < candyCount; i++){
                     Texture2D currentcandy;
                     if(candytype[i] == 0){
@@ -328,16 +355,40 @@ int main(){
                     if(lives <= 0){
                         lives = 0;
                     }
+                    if(classicscore >= 30){
+                        classicscore = 30;
+                    }
                 }
             }
 
             if(lives == 0){
+                if(!losemusicon){
+                    StopMusicStream(classicmusic);
+                    PlayMusicStream(losemusic);
+                    losemusicon = true;
+                }
                 DrawTextureEx(gameloss, {0,0}, 0, 8.0f, WHITE);
                 if(playbool || againbool){
                     DrawTextureEx(playagainhover, {0,0}, 0, 8.0f, WHITE);
                     if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        StopMusicStream(losemusic);
+                        PlayMusicStream(thememusic1);
+                        losemusicon = false;
+                        winmusicon = false;
                         classicscore = 0;
                         lives = 3;
+                        candyPositions[0] = {300, 650};
+                        candyPositions[1] = {640, 650};
+                        candyPositions[2] = {500, 650};
+                        candytype[0] = 0;
+                        candytype[1] = 1;
+                        candytype[2] = 2;
+                        candySpeed[0] = -1000;
+                        candySpeed[1] = -950;
+                        candySpeed[2] = -800;
+                        jumpscareshown = false;
+                        scaretime = 0.0f;
+                        PlaySound(click);
                         screen = 1;
                     }
                 }
@@ -345,6 +396,41 @@ int main(){
                     DrawTextureEx(playagain, {0,0}, 0, 8.0f, WHITE);
                 }
                 
+            }
+            if(classicscore == 30){
+                if(!winmusicon){
+                    StopMusicStream(classicmusic);
+                    PlayMusicStream(winmusic);
+                    winmusicon = true;
+                }
+                DrawTextureEx(gamewin, {0,0}, 0, 8.0f, WHITE);
+                if(winp || wina){
+                    DrawTextureEx(winpahover, {0,0}, 0, 8.0f, WHITE);
+                    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        StopMusicStream(winmusic);
+                        PlayMusicStream(thememusic1);
+                        losemusicon = false;
+                        winmusicon = false;
+                        classicscore = 0;
+                        lives = 3;
+                        candyPositions[0] = {300, 650};
+                        candyPositions[1] = {640, 650};
+                        candyPositions[2] = {500, 650};
+                        candytype[0] = 0;
+                        candytype[1] = 1;
+                        candytype[2] = 2;
+                        candySpeed[0] = -1000;
+                        candySpeed[1] = -950;
+                        candySpeed[2] = -800;
+                        jumpscareshown = false;
+                        scaretime = 0.0f;
+                        PlaySound(click);
+                        screen = 1;
+                    }
+                }
+                else{
+                    DrawTextureEx(winpa, {0,0}, 0, 8.0f, WHITE);
+                }
             }
 
             if(jumpscareshown && lives > 0){
@@ -356,6 +442,10 @@ int main(){
                 }
             }
 
+        }
+        else if(screen == 3){
+            ClearBackground(WHITE);
+            DrawTextureEx(hardmodebg, {0,0}, 0, 8.0f, WHITE);
         }
         DrawCircleV(cursor, 3.0f, WHITE);
         DrawLineEx(previouscursor, cursor, 3.0f, WHITE);
