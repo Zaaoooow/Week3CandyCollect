@@ -1,6 +1,6 @@
-/* Candy Slice:
-game where you slice candy and try to get the highest score
-the catch is if you slice the wrong things... youll be surprised.*/
+/* Candy Collect:
+game where you collect candy and try to get the highest score
+the catch is if you collect the wrong things... youll be surprised.*/
 #include <raylib.h>
 #include <fstream>
 
