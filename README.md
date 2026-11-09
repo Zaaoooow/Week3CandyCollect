@@ -8,11 +8,11 @@ and i like the satisfying popping sound when i collect the right ones (: !!!!
 thanks cloveian for the feedback/suggestion to save scores!
 
 HOW TO DOWNLOAD AND RUN:
-step 1: go to https://github.com/Zaaoooow/Week3CandyCollect/releases/tag/v1.0.0
-step 2: download the Week3CandyCollect.Zip
-step 3: extract the zip folder
-step 4: run the main.exe file !
-step 5: PLAY IT!
+- step 1: go to https://github.com/Zaaoooow/Week3CandyCollect/releases/tag/v1.0.0
+- step 2: download the Week3CandyCollect.Zip
+- step 3: extract the zip folder
+- step 4: run the main.exe file !
+- step 5: PLAY IT!
 
 
 <img width="1268" height="730" alt="Screenshot 2026-11-08 192718" src="https://github.com/user-attachments/assets/b30c77a7-5b9f-41dd-9d9a-8730e440f8f1" />
