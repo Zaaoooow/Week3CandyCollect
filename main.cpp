@@ -2,6 +2,53 @@
 game where you slice candy and try to get the highest score
 the catch is if you slice the wrong things... youll be surprised.*/
 #include <raylib.h>
+#include <fstream>
+
+void saveStats(int games, int win, int loss, int wrongstat, int correctstat, int missed, int streak, int highstreak, int winrate){
+    std::ofstream file("stats.txt");
+    file << games << std::endl;
+    file << win << std::endl;
+    file << loss << std::endl;
+    file << wrongstat << std::endl;
+    file << correctstat << std::endl;
+    file << missed << std::endl;
+    file << streak << std::endl;
+    file << highstreak << std::endl;
+    file << winrate << std::endl;
+
+    file.close();
+}
+void loadStats(int &games, int &win, int &loss, int &wrongstat, int &correctstat, int &missed, int &streak, int &highstreak, int &winrate){
+    std::ifstream file("stats.txt");
+
+    if(file.is_open()){
+        file >> games;
+        file >> win;
+        file >> loss;
+        file >> wrongstat;
+        file >> correctstat;
+        file >> missed;
+        file >> streak;
+        file >> highstreak;
+        file >> winrate;
+
+        file.close();
+    }
+}
+void resetStats(int &games, int &win, int &loss, int &wrongstat, int &correcstat, int &missed, int &streak, int &highstreak, int &winrate){
+    games = 0;
+    win = 0;
+    loss = 0;
+    wrongstat = 0;
+    correcstat = 0;
+    missed = 0;
+    streak = 0;
+    highstreak = 0;
+    winrate = 0;
+
+    saveStats(games, win, loss, wrongstat, correcstat, missed, streak, highstreak, winrate);
+}
+
 
 int main(){
     InitAudioDevice();
@@ -39,6 +86,8 @@ int main(){
     Texture2D guidepage = LoadTexture("assets/textures/guidepage.png");
     Texture2D guideexit = LoadTexture("assets/textures/guideexit.png");
     Texture2D guideexithover = LoadTexture("assets/textures/guideexithover.png");
+    Texture2D musicon = LoadTexture("assets/textures/musicon.png");
+    Texture2D musicoff = LoadTexture("assets/textures/musicoff.png");
     //gamemode screen
     Texture2D background1 = LoadTexture("assets/textures/background1.png");
     Texture2D classicmode = LoadTexture("assets/textures/classicmode.png");
@@ -52,6 +101,10 @@ int main(){
     Texture2D statspage = LoadTexture("assets/textures/statspage.png");
     Texture2D statsexit = LoadTexture("assets/textures/statsexit.png");
     Texture2D statsexithover = LoadTexture("assets/textures/statsexithover.png");
+    Texture2D savestats = LoadTexture("assets/textures/savebutton.png");
+    Texture2D savestatshover = LoadTexture("assets/textures/savehover.png");
+    Texture2D resetstats = LoadTexture("assets/textures/resetbutton.png");
+    Texture2D resetstatshover = LoadTexture("assets/textures/resethover.png");
     //classic screen
     Texture2D classicbg = LoadTexture("assets/textures/classicbackground.png");
     Texture2D candy1 = LoadTexture("assets/textures/candy1.png");
@@ -87,6 +140,8 @@ int main(){
     SetTextureFilter(guideexithover, TEXTURE_FILTER_POINT);
     SetTextureFilter(guidebuttonhover, TEXTURE_FILTER_POINT);
     SetTextureFilter(guidepage, TEXTURE_FILTER_POINT);
+    SetTextureFilter(musicon, TEXTURE_FILTER_POINT);
+    SetTextureFilter(musicoff, TEXTURE_FILTER_POINT);
     //gamemode screen
     SetTextureFilter(background1, TEXTURE_FILTER_POINT);
     SetTextureFilter(classicmode, TEXTURE_FILTER_POINT);
@@ -100,6 +155,10 @@ int main(){
     SetTextureFilter(statspage, TEXTURE_FILTER_POINT);
     SetTextureFilter(statsexit, TEXTURE_FILTER_POINT);
     SetTextureFilter(statsexithover, TEXTURE_FILTER_POINT);
+    SetTextureFilter(savestats, TEXTURE_FILTER_POINT);
+    SetTextureFilter(savestatshover, TEXTURE_FILTER_POINT);
+    SetTextureFilter(resetstats, TEXTURE_FILTER_POINT);
+    SetTextureFilter(resetstatshover, TEXTURE_FILTER_POINT);
     //classic screen
     SetTextureFilter(classicbg, TEXTURE_FILTER_POINT);
     SetTextureFilter(candy1, TEXTURE_FILTER_POINT);
@@ -123,6 +182,7 @@ int main(){
     bool audio = true;
     bool guidepagebool = false;
     bool statspagebool = false;
+    bool music = true;
 
     //classic mode
     int candyCount = 3;
@@ -164,6 +224,9 @@ int main(){
     int missed = 0;
     int winrate = 0;
 
+    //load saved stats
+    loadStats(games, win, loss, wrongstat, correctstat, missed, streak, highstreak, winrate);
+
 
     //sounds
     SetMusicVolume(thememusic1, 0.6f);
@@ -199,7 +262,19 @@ int main(){
         else if(!audio){
             SetMasterVolume(0.0f);
         }
-
+        //music settings
+        if(music){
+            SetMusicVolume(classicmusic, 0.6f);
+            SetMusicVolume(losemusic, 0.6f);
+            SetMusicVolume(winmusic, 0.6f);
+            SetMusicVolume(thememusic1, 0.6f);
+        }
+        else if(!music){
+            SetMusicVolume(classicmusic, 0.0f);
+            SetMusicVolume(losemusic, 0.0f);
+            SetMusicVolume(winmusic, 0.0f);
+            SetMusicVolume(thememusic1, 0.0f);
+        }
 
         //main menu
         if(screen == 0){
@@ -210,6 +285,7 @@ int main(){
             bool audiobool = CheckCollisionPointRec(cursor, {344, 208, 96, 40});
             bool guidebool = CheckCollisionPointRec(cursor, {376, 576, 528, 96});
             bool guideexitbool = CheckCollisionPointRec(cursor, {896, 152, 40, 40});
+            bool musicbool = CheckCollisionPointRec(cursor, {480, 208, 96, 40});
 
             //playbutton
             if(playbuttonbool && !settingpagebool && !guidepagebool){
@@ -322,6 +398,23 @@ int main(){
                     audio = true;
                     }
                 }
+                if(music){
+                    DrawText("Music", 500, 220, 20, WHITE);
+                    DrawTextureEx(musicon, {0,0}, 0, 8.0f, WHITE);
+                    if(musicbool && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        PlaySound(click);
+                        music = false;
+                    }
+                }
+                else if(!music){
+                    DrawText("Music", 500, 220, 20, BLACK);
+                    DrawTextureEx(musicoff, {0,0}, 0, 8.0f, WHITE);
+                    if(musicbool && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        PlaySound(click);
+                        music = true;
+                    }
+                }
+
             }
         }
         else if(screen == 1){
@@ -394,6 +487,8 @@ int main(){
             
             //stats page
             if(statspagebool){
+                bool savestatsbool = CheckCollisionPointRec(cursor, {712, 264, 120, 56});
+                bool resetstatsbool = CheckCollisionPointRec(cursor, {712, 400, 120, 56});
                 DrawTextureEx(statspage, {0,0}, 0, 8.0f, WHITE);
                 DrawText(TextFormat("Games: %i", games), 300, 260, 20, WHITE);
                 DrawText(TextFormat("Wins: %i", win), 300, 285, 20, WHITE);
@@ -413,6 +508,30 @@ int main(){
                 }
                 else{
                     DrawTextureEx(statsexit, {0,0}, 0, 8.0f, WHITE);
+                }
+                if(savestatsbool){
+                    DrawText("Save", 730, 275, 35, WHITE);
+                    DrawTextureEx(savestatshover, {0,0}, 0, 8.0f, WHITE);
+                    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        PlaySound(click);
+                        saveStats(games, win, loss, wrongstat, correctstat, missed, streak, highstreak, winrate);
+                    }
+                }
+                else{
+                    DrawText("Save", 730, 275, 35, RED);
+                    DrawTextureEx(savestats, {0,0}, 0, 8.0f, WHITE);
+                }
+                if(resetstatsbool){
+                    DrawText("Reset", 728, 415, 30, WHITE);
+                    DrawTextureEx(resetstatshover, {0,0}, 0, 8.0f, WHITE);
+                    if(IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                        PlaySound(click);
+                        resetStats(games, win, loss, wrongstat, correctstat, missed, streak, highstreak, winrate);
+                    }
+                }
+                else{
+                    DrawText("Reset", 728, 415, 30, RED);
+                    DrawTextureEx(resetstats, {0,0}, 0, 8.0f, WHITE);
                 }
             }
         }
@@ -537,6 +656,7 @@ int main(){
                         if(games > 0){
                         winrate = ((float)win / games) * 100;
                         }
+                        saveStats(games, win, loss, wrongstat, correctstat, missed, streak, highstreak, winrate);
                     }
                 }
                 else{
@@ -582,6 +702,7 @@ int main(){
                         if(games > 0){
                         winrate = ((float)win / games) * 100;
                         }
+                        saveStats(games, win, loss, wrongstat, correctstat, missed, streak, highstreak, winrate);
                     }
                 }
                 else{
@@ -695,6 +816,7 @@ int main(){
                         hardscore = 0;
                         hardlives = 1;
                         scaretime = 0.0f;
+                        jumpscareshown = false;
                         hardcandypositions[0] = {200, 650};
                         hardcandypositions[1] = {400, 650};
                         hardcandypositions[2] = {600, 650};
@@ -719,6 +841,7 @@ int main(){
                         if(games > 0){
                         winrate = ((float)win / games) * 100;
                         }
+                        saveStats(games, win, loss, wrongstat, correctstat, missed, streak, highstreak, winrate);
                     }
                 }
                 else{
@@ -769,6 +892,7 @@ int main(){
                         if(games > 0){
                         winrate = ((float)win / games) * 100;
                         }
+                        saveStats(games, win, loss, wrongstat, correctstat, missed, streak, highstreak, winrate);
                     }
                 }
                 else{
